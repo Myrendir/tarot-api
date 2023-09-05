@@ -13,9 +13,7 @@ statisticController.getMostGamesTaken = async (req, res) => {
                     count: {$sum: 1},
                 },
             },
-            {
-                $sort: {count: -1},
-            },
+
             {
                 $limit: 10,
             },
@@ -32,10 +30,13 @@ statisticController.getMostGamesTaken = async (req, res) => {
             },
             {
                 $project: {
-                    playerFirstname: '$playerDetails.firstname',
-                    playerLastname: '$playerDetails.lastname',
+                    firstname: '$playerDetails.firstname',
+                    lastname: '$playerDetails.lastname',
                     count: 1,
                 },
+            },
+            {
+                $sort: {count: -1, firstname: 1},
             },
         ]);
 
@@ -57,9 +58,7 @@ statisticController.getMostCalledPartners = async (req, res) => {
                     count: {$sum: 1},
                 },
             },
-            {
-                $sort: {count: -1},
-            },
+
             {
                 $limit: 10,
             },
@@ -76,10 +75,13 @@ statisticController.getMostCalledPartners = async (req, res) => {
             },
             {
                 $project: {
-                    playerFirstname: '$playerDetails.firstname',
-                    playerLastname: '$playerDetails.lastname',
+                    firstname: '$playerDetails.firstname',
+                    lastname: '$playerDetails.lastname',
                     count: 1,
                 },
+            },
+            {
+                $sort: {count: -1, firstname: 1},
             },
         ]);
 
@@ -128,8 +130,7 @@ statisticController.getPlayersWithMostChelems = async (req, res) => {
 
         res.json(topChelemPlayers);
     } catch (err) {
-        res.status(500).
-            json({error: 'Failed to fetch players with most chelems.'});
+        res.status(500).json({error: 'Failed to fetch players with most chelems.'});
     }
 };
 
@@ -157,9 +158,7 @@ statisticController.getBestWinPercentage = async (req, res) => {
                     wonGames: 1,
                 },
             },
-            {
-                $sort: {winPercentage: -1},
-            },
+
             {
                 $limit: 10,
             },
@@ -176,18 +175,25 @@ statisticController.getBestWinPercentage = async (req, res) => {
             },
             {
                 $project: {
-                    player: '$playerDetails.username',
+                    firstname: '$playerDetails.firstname',
+                    lastname: '$playerDetails.lastname',
                     winPercentage: 1,
                     totalGames: 1,
                     wonGames: 1,
+                },
+            },
+            {
+                $sort: {
+                    winPercentage: -1,
+                    totalGames: -1,
+                    firstname: 1,
                 },
             },
         ]);
 
         res.json(bestWinPercentagePlayers);
     } catch (err) {
-        res.status(500).
-            json({error: 'Failed to fetch players with best win percentage.'});
+        res.status(500).json({error: 'Failed to fetch players with best win percentage.'});
     }
 };
 
@@ -229,9 +235,8 @@ statisticController.getMostGamesTakenForBet = async (req, res) => {
 
         res.json(topTakersForBet);
     } catch (err) {
-        res.status(500).
-            json(
-                {error: `Failed to fetch top takers for bet ${req.params.betValue}.`});
+        res.status(500).json(
+            {error: `Failed to fetch top takers for bet ${req.params.betValue}.`});
     }
 };
 
@@ -294,9 +299,8 @@ statisticController.getMostWinrateForBet = async (req, res) => {
 
         res.json(winrateForBet);
     } catch (err) {
-        res.status(500).
-            json(
-                {error: `Failed to fetch winrate for bet ${req.params.betValue}.`});
+        res.status(500).json(
+            {error: `Failed to fetch winrate for bet ${req.params.betValue}.`});
     }
 };
 
@@ -313,10 +317,12 @@ statisticController.getMostPointsCumulated = async (req, res) => {
                 },
             },
             {
-                $sort: {totalPoints: -1},
+                $limit: 10,
             },
             {
-                $limit: 10,
+                $sort: {
+                    totalPoints: -1,
+                },
             },
             {
                 $lookup: {
@@ -331,11 +337,12 @@ statisticController.getMostPointsCumulated = async (req, res) => {
             },
             {
                 $project: {
-                    playerFirstname: '$playerDetails.firstname',
-                    playerLastname: '$playerDetails.lastname',
+                    firstname: '$playerDetails.firstname',
+                    lastname: '$playerDetails.lastname',
                     totalPoints: 1,
                 },
             },
+
         ]);
 
         res.json(topPlayersByPoints);
@@ -389,9 +396,8 @@ statisticController.getBestAveragePointsPerGame = async (req, res) => {
 
         res.json(topPlayersByAvgPoints);
     } catch (err) {
-        res.status(500).
-            json(
-                {error: 'Failed to fetch players by average points per game.'});
+        res.status(500).json(
+            {error: 'Failed to fetch players by average points per game.'});
     }
 };
 
