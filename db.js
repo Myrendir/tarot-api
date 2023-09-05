@@ -12,7 +12,6 @@ database.once('connected', () => {
     console.log('Database Connected');
 });
 
-// Connect to the database
 mongoose.connect(mongoString, {
     useNewUrlParser: true,
     useUnifiedTopology: true
