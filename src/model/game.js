@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const BET_VALUES = ['petite', 'garde', 'garde sans', 'garde contre'];
+const BET_VALUES = ['p', 'g', 'gs', 'gc'];
 
 const gameSchema = new mongoose.Schema({
     players: [
@@ -10,7 +10,7 @@ const gameSchema = new mongoose.Schema({
                 ref: 'Player',
                 required: true,
             },
-            points: {
+            score: {
                 type: Number,
                 required: true,
             },
@@ -25,16 +25,49 @@ const gameSchema = new mongoose.Schema({
         ref: 'Player',
         required: true,
     },
-    caller: {
+    partner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Player',
         default: null,
     },
+    tip: {
+        type: Number,
+        required: true,
+    },
+    attackingTeamScore: {
+        type: Number,
+        required: true,
+    },
+    defendingTeamScore: {
+        type: Number,
+        required: true,
+    },
+    petitAuBoutWon: {
+        type: ['', 'gagné', 'perdu'],
+        default: null,
+    },
+    chelemWon: {
+        type: Boolean,
+        default: null,
+    },
+    hugeChelemWon: {
+        type: Boolean,
+        default: null,
+    },
+    /* handle: {
+         type: Number,
+         default: null,
+     },*/
+    won: {
+        type: Boolean,
+        required: true,
+    }
 }, {
     timestamps: true,
 });
 
 gameSchema.pre('save', function(next) {
+    this.players.sort();
     this.updatedAt = Date.now();
     next();
 });
@@ -43,4 +76,9 @@ gameSchema.path('players').validate(function(players) {
     return players.length === 5;
 }, 'A game must contain exactly 5 players');
 
-module.exports = [mongoose.model('Game', gameSchema), BET_VALUES];
+const Game = mongoose.model('Game', gameSchema);
+
+module.exports = {
+    Game,
+    BET_VALUES,
+};

@@ -4,9 +4,10 @@ const router = express.Router();
 const auth = require('../middleware/authentication');
 const isAdmin = require('../middleware/isAdmin');
 
-router.post('/', isAdmin, playerController.create);
-router.get('/:id', auth, playerController.get);
-router.put('/:id', isAdmin, playerController.update);
-router.delete('/:id', isAdmin, playerController.delete);
+router.post('/', playerController.create);
+router.get('/', playerController.getAll);
+router.get('/:id', playerController.get);
+router.put('/:id', playerController.update);
+router.delete('/:id', playerController.delete);
 
 module.exports = router;
