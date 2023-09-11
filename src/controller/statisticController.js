@@ -13,10 +13,6 @@ statisticController.getMostGamesTaken = async (req, res) => {
                     count: {$sum: 1},
                 },
             },
-
-            {
-                $limit: 10,
-            },
             {
                 $lookup: {
                     from: Player.collection.name,
@@ -36,8 +32,14 @@ statisticController.getMostGamesTaken = async (req, res) => {
                 },
             },
             {
-                $sort: {count: -1, firstname: 1},
+                $sort: {
+                    count: -1,
+                    firstname: 1
+                },
             },
+            {
+                $limit: 10,
+            }
         ]);
 
         res.json(topTakers);
@@ -58,10 +60,6 @@ statisticController.getMostCalledPartners = async (req, res) => {
                     count: {$sum: 1},
                 },
             },
-
-            {
-                $limit: 10,
-            },
             {
                 $lookup: {
                     from: Player.collection.name,
@@ -81,13 +79,16 @@ statisticController.getMostCalledPartners = async (req, res) => {
                 },
             },
             {
-                $sort: {count: -1, firstname: 1},
-            },
+                $sort: {
+                    count: -1,
+                    firstname: 1
+                },
+            }
         ]);
 
         res.json(topCalledPartners);
     } catch (err) {
-        res.status(500).json({error: 'Failed to fetch most called partners.'});
+        res.status(500).json({error: err});
     }
 };
 
@@ -317,14 +318,6 @@ statisticController.getMostPointsCumulated = async (req, res) => {
                 },
             },
             {
-                $limit: 10,
-            },
-            {
-                $sort: {
-                    totalPoints: -1,
-                },
-            },
-            {
                 $lookup: {
                     from: Player.collection.name,
                     localField: '_id',
@@ -342,7 +335,11 @@ statisticController.getMostPointsCumulated = async (req, res) => {
                     totalPoints: 1,
                 },
             },
-
+            {
+                $sort: {
+                    totalPoints: -1,
+                },
+            },
         ]);
 
         res.json(topPlayersByPoints);
@@ -370,12 +367,6 @@ statisticController.getBestAveragePointsPerGame = async (req, res) => {
                 },
             },
             {
-                $sort: {averagePoints: -1},
-            },
-            {
-                $limit: 10,
-            },
-            {
                 $lookup: {
                     from: Player.collection.name,
                     localField: '_id',
@@ -388,9 +379,16 @@ statisticController.getBestAveragePointsPerGame = async (req, res) => {
             },
             {
                 $project: {
-                    player: '$playerDetails.username',
+                    firstname: '$playerDetails.firstname',
+                    lastname: '$playerDetails.lastname',
                     averagePoints: 1,
                 },
+            },
+            {
+                $sort: {averagePoints: -1, firstname: 1},
+            },
+            {
+                $limit: 10,
             },
         ]);
 
