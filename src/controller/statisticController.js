@@ -34,12 +34,12 @@ statisticController.getMostGamesTaken = async (req, res) => {
             {
                 $sort: {
                     count: -1,
-                    firstname: 1
+                    firstname: 1,
                 },
             },
             {
                 $limit: 10,
-            }
+            },
         ]);
 
         res.json(topTakers);
@@ -81,9 +81,9 @@ statisticController.getMostCalledPartners = async (req, res) => {
             {
                 $sort: {
                     count: -1,
-                    firstname: 1
+                    firstname: 1,
                 },
-            }
+            },
         ]);
 
         res.json(topCalledPartners);
@@ -131,7 +131,8 @@ statisticController.getPlayersWithMostChelems = async (req, res) => {
 
         res.json(topChelemPlayers);
     } catch (err) {
-        res.status(500).json({error: 'Failed to fetch players with most chelems.'});
+        res.status(500).
+            json({error: 'Failed to fetch players with most chelems.'});
     }
 };
 
@@ -194,7 +195,8 @@ statisticController.getBestWinPercentage = async (req, res) => {
 
         res.json(bestWinPercentagePlayers);
     } catch (err) {
-        res.status(500).json({error: 'Failed to fetch players with best win percentage.'});
+        res.status(500).
+            json({error: 'Failed to fetch players with best win percentage.'});
     }
 };
 
@@ -261,6 +263,9 @@ statisticController.getMostWinrateForBet = async (req, res) => {
                 },
             },
             {
+                $match: { totalGames: { $gte: 5 } },
+            },
+            {
                 $project: {
                     winrate: {
                         $multiply: [
@@ -274,10 +279,8 @@ statisticController.getMostWinrateForBet = async (req, res) => {
                             100,
                         ],
                     },
+                    totalGames: 1,
                 },
-            },
-            {
-                $sort: {winrate: -1},
             },
             {
                 $lookup: {
@@ -292,8 +295,17 @@ statisticController.getMostWinrateForBet = async (req, res) => {
             },
             {
                 $project: {
-                    player: '$playerDetails.username',
+                    firstname: '$playerDetails.firstname',
+                    lastname: '$playerDetails.lastname',
                     winrate: 1,
+                    totalGames: 1,
+                },
+            },
+            {
+                $sort: {
+                    winrate: -1,
+                    totalGames: -1,
+                    firstname: 1,
                 },
             },
         ]);
@@ -417,6 +429,10 @@ statisticController.getPlayerStats = async (req, res) => {
         const betStats = await Game.aggregate([
             {
                 $match: {
+                    $or: [
+                        {taker: new mongoose.Types.ObjectId(playerId)},
+                        {caller: new mongoose.Types.ObjectId(playerId)},
+                    ],
                     'players.player': new mongoose.Types.ObjectId(playerId),
                 },
             },
