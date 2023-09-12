@@ -263,7 +263,7 @@ statisticController.getMostWinrateForBet = async (req, res) => {
                 },
             },
             {
-                $match: { totalGames: { $gte: 5 } },
+                $match: {totalGames: {$gte: 5}},
             },
             {
                 $project: {
@@ -374,8 +374,12 @@ statisticController.getBestAveragePointsPerGame = async (req, res) => {
                 },
             },
             {
+                $match: {totalGames: {$gte: 10}},
+            },
+            {
                 $project: {
                     averagePoints: {$divide: ['$totalPoints', '$totalGames']},
+                    totalGames: 1,
                 },
             },
             {
@@ -394,10 +398,11 @@ statisticController.getBestAveragePointsPerGame = async (req, res) => {
                     firstname: '$playerDetails.firstname',
                     lastname: '$playerDetails.lastname',
                     averagePoints: 1,
+                    totalGames: 1,
                 },
             },
             {
-                $sort: {averagePoints: -1, firstname: 1},
+                $sort: {averagePoints: -1, totalGames: -1, firstname: 1},
             },
             {
                 $limit: 10,
