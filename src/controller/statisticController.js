@@ -147,6 +147,9 @@ statisticController.getBestWinPercentage = async (req, res) => {
                 },
             },
             {
+                $match: { totalGames: { $gte: 6 } },
+            },
+            {
                 $project: {
                     winPercentage: {
                         $multiply: [
@@ -160,7 +163,12 @@ statisticController.getBestWinPercentage = async (req, res) => {
                     wonGames: 1,
                 },
             },
-
+            {
+                $sort: {
+                    winPercentage: -1,
+                    totalGames: -1
+                },
+            },
             {
                 $limit: 10,
             },
@@ -199,6 +207,7 @@ statisticController.getBestWinPercentage = async (req, res) => {
             json({error: 'Failed to fetch players with best win percentage.'});
     }
 };
+
 
 statisticController.getMostGamesTakenForBet = async (req, res) => {
     try {
