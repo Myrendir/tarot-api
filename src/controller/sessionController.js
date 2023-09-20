@@ -1,4 +1,4 @@
-const {Session, SEASONS} = require('../model/session');
+const Session = require('../model/session');
 const {Game} = require('../model/game');
 const {getPoint} = require(
     '../service/tarotCalculator');
@@ -139,7 +139,7 @@ exports.getUpdatedScores = (game, session) => {
     session.players.forEach(player => {
         if (player.player._id.toString() === game.taker) {
             game.won = point > 0;
-            const takerPoints = game.partner ? point : (point * 2);
+            const takerPoints = game.taker ? point : (point * 2);
             player.score += takerPoints;
             const takerPlayer = game.players.find(p => p.player.toString() ===
                 player.player._id.toString());
@@ -179,15 +179,13 @@ sessionController.deleteLastGameOfSession = async (req, res) => {
         }
 
         if (session.games.length === 0) {
-            return res.status(400).
-                json({message: 'No games in this session to delete.'});
+            return res.status(400).json({message: 'No games in this session to delete.'});
         }
 
         const lastGame = session.games[session.games.length - 1];
 
         session.players.forEach(player => {
-            const gamePlayer = lastGame.players.find(
-                p => p.player.toString() === player.player._id.toString());
+            const gamePlayer = lastGame.players.find(p => p.player.toString() === player.player._id.toString());
             if (gamePlayer) {
                 player.score -= gamePlayer.score;
             }
@@ -199,9 +197,7 @@ sessionController.deleteLastGameOfSession = async (req, res) => {
 
         await Game.findByIdAndRemove(lastGame._id);
 
-        res.status(200).
-            json(
-                {message: 'Last game of session deleted and scores updated successfully.'});
+        res.status(200).json({message: 'Last game of session deleted and scores updated successfully.'});
     } catch (error) {
         res.status(500).json({
             message: 'Error deleting the last game of the session and updating scores',
@@ -209,6 +205,7 @@ sessionController.deleteLastGameOfSession = async (req, res) => {
         });
     }
 };
+
 
 module.exports = sessionController;
 
