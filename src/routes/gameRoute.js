@@ -8,5 +8,6 @@ router.get('/:id', gameController.get);
 router.get('/count', gameController.count);
 router.put('/:id', gameController.update);
 router.delete('/:id', gameController.delete);
+router.get('/nonZeroScore', gameController.getGamesWithNonZeroScores)
 
 module.exports = router;

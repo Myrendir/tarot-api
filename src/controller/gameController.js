@@ -76,4 +76,42 @@ gameController.count = async (req, res) => {
     }
 };
 
+gameController.getGamesWithNonZeroScores = async (req, res) => {
+    try {
+        const games = await Game.aggregate([
+            {
+                $unwind: '$players',
+            },
+            {
+                $group: {
+                    _id: '$_id',
+                    totalScore: { $sum: '$players.score' },
+                },
+            },
+            {
+                $match: { totalScore: { $ne: 0 } },
+            },
+            {
+                $lookup: {
+                    from: 'games',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'gameDetails',
+                },
+            },
+            {
+                $unwind: '$gameDetails',
+            },
+            {
+                $replaceRoot: { newRoot: '$gameDetails' },
+            }
+        ]);
+
+        res.json(games);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to fetch games with non-zero scores.' });
+    }
+};
+
 module.exports = gameController;
