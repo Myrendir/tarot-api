@@ -39,7 +39,8 @@ sessionController.get = async (req, res) => {
             });
 
         if (!session) {
-            return res.status(404).send({message: 'Session not found'});
+            return res.status(404).
+                send({message: 'Session not found', _id: req.params.id});
         }
 
         res.send(session);
