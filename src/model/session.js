@@ -68,9 +68,7 @@ sessionSchema.path('players').validate(function(players) {
     return players.length === 5;
 }, 'A session must have 5 players');
 
-sessionSchema.path('season').validate(function(season) {
-    return season = getSeason();
-}, 'This session is not in the current season');
+
 
 const Session = mongoose.model('Session', sessionSchema);
 
