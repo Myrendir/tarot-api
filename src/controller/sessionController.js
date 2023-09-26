@@ -1,4 +1,4 @@
-const Session = require('../model/session');
+const {Session, getSeason} = require('../model/session');
 const {Game} = require('../model/game');
 const {getPoint} = require(
     '../service/tarotCalculator');
@@ -84,8 +84,15 @@ sessionController.delete = async (req, res) => {
 sessionController.addGameToSessionAndUpdate = async (req, res) => {
     try {
         const session = await Session.findById(req.params.sessionId);
+        const currentSeason = getSeason(new Date());
+
         if (!session) {
             return res.status(404).send({message: 'Session not found'});
+        }
+
+        if (session.season !== currentSeason) {
+            return res.status(400).
+                send({message: 'La session n\'est pas dans la saison en cours.'});
         }
 
         const gameData = req.body;
@@ -120,8 +127,14 @@ sessionController.checkExistingSession = async (req, res) => {
             return res.status(400).send({message: 'Players are required.'});
         }
 
+        const currentSeason = getSeason();
+
         const existingSession = await Session.findOne(
-            {'players.player': {$all: players}});
+            {
+                'players.player': {$all: players},
+                season: currentSeason,
+            },
+        );
 
         if (existingSession) {
             return res.status(200).send({sessionId: existingSession._id});

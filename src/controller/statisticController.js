@@ -1,6 +1,6 @@
 const {Game} = require('../model/game');
 const Player = require('../model/player');
-const Session = require('../model/session');
+const {Session} = require('../model/session');
 const mongoose = require('mongoose');
 const statisticController = {};
 
@@ -147,7 +147,7 @@ statisticController.getBestWinPercentage = async (req, res) => {
                 },
             },
             {
-                $match: { totalGames: { $gte: 6 } },
+                $match: {totalGames: {$gte: 6}},
             },
             {
                 $project: {
@@ -166,7 +166,7 @@ statisticController.getBestWinPercentage = async (req, res) => {
             {
                 $sort: {
                     winPercentage: -1,
-                    totalGames: -1
+                    totalGames: -1,
                 },
             },
             {
@@ -207,7 +207,6 @@ statisticController.getBestWinPercentage = async (req, res) => {
             json({error: 'Failed to fetch players with best win percentage.'});
     }
 };
-
 
 statisticController.getMostGamesTakenForBet = async (req, res) => {
     try {
