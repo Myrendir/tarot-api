@@ -127,7 +127,7 @@ sessionController.checkExistingSession = async (req, res) => {
             return res.status(400).send({message: 'Players are required.'});
         }
 
-        const currentSeason = getSeason();
+        const currentSeason = getSeason(new Date());
 
         const existingSession = await Session.findOne(
             {
