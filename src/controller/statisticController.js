@@ -6,7 +6,13 @@ const statisticController = {};
 
 statisticController.getMostGamesTaken = async (req, res) => {
     try {
+        const season = req.params.season;
         const topTakers = await Game.aggregate([
+            {
+                $match: {
+                    season: season,
+                }
+            },
             {
                 $group: {
                     _id: '$taker',
@@ -50,7 +56,14 @@ statisticController.getMostGamesTaken = async (req, res) => {
 
 statisticController.getMostCalledPartners = async (req, res) => {
     try {
+        const season = req.params.season;
+
         const topCalledPartners = await Game.aggregate([
+            {
+                $match: {
+                    season: season,
+                }
+            },
             {
                 $match: {partner: {$ne: null}},
             },
@@ -138,7 +151,14 @@ statisticController.getPlayersWithMostChelems = async (req, res) => {
 
 statisticController.getBestWinPercentage = async (req, res) => {
     try {
+        const season = req.params.season;
+
         const bestWinPercentagePlayers = await Game.aggregate([
+            {
+                $match: {
+                    season: season,
+                }
+            },
             {
                 $group: {
                     _id: '$taker',
@@ -254,10 +274,13 @@ statisticController.getMostGamesTakenForBet = async (req, res) => {
 statisticController.getMostWinrateForBet = async (req, res) => {
     try {
         const betValue = req.params.betValue;
-
+        const season = req.params.season;
         const winrateForBet = await Game.aggregate([
             {
-                $match: {bet: betValue},
+                $match: {
+                    bet: betValue,
+                    season: season,
+                },
             },
             {
                 $group: {
@@ -327,7 +350,14 @@ statisticController.getMostWinrateForBet = async (req, res) => {
 
 statisticController.getMostPointsCumulated = async (req, res) => {
     try {
+        const season = req.params.season;
+
         const topPlayersByPoints = await Game.aggregate([
+            {
+                $match: {
+                    season: season,
+                },
+            },
             {
                 $unwind: '$players',
             },
@@ -370,7 +400,13 @@ statisticController.getMostPointsCumulated = async (req, res) => {
 
 statisticController.getBestAveragePointsPerGame = async (req, res) => {
     try {
+        const season = req.params.season;
         const topPlayersByAvgPoints = await Game.aggregate([
+            {
+                $match: {
+                    season: season,
+                }
+            },
             {
                 $unwind: '$players',
             },

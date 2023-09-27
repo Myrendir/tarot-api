@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const {getSeason} = require('./session');
 
 const BET_VALUES = ['p', 'g', 'gs', 'gc'];
 
@@ -61,14 +62,22 @@ const gameSchema = new mongoose.Schema({
     won: {
         type: Boolean,
         required: true,
-    }
+    },
+    season: {
+        type: String,
+        enum: ['autumn2023', 'winter2023', 'spring2024', 'summer2024'],
+    },
 }, {
     timestamps: true,
 });
 
 gameSchema.pre('save', function(next) {
+    if (!this.season) {
+        this.season = getSeason(this.createdAt);
+    }
     this.players.sort();
     this.updatedAt = Date.now();
+
     next();
 });
 
