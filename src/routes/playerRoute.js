@@ -9,5 +9,6 @@ router.get('/', playerController.getAll);
 router.get('/:id', playerController.get);
 router.put('/:id', playerController.update);
 router.delete('/:id', playerController.delete);
+router.put('/clearStars/:id', playerController.clearStars);
 
 module.exports = router;
