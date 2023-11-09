@@ -1,8 +1,9 @@
 const {Session, getSeason} = require('../model/session');
 const {Game} = require('../model/game');
+const Player = require('../model/player');
 const {getPoint} = require(
     '../service/tarotCalculator');
-
+const mongoose = require('mongoose');
 const sessionController = {};
 
 sessionController.create = async (req, res) => {
@@ -92,7 +93,8 @@ sessionController.addGameToSessionAndUpdate = async (req, res) => {
 
         if (session.season !== currentSeason) {
             return res.status(400).
-                send({message: 'La session n\'est pas dans la saison en cours.'});
+                send(
+                    {message: 'La session n\'est pas dans la saison en cours.'});
         }
 
         const gameData = req.body;
@@ -225,6 +227,48 @@ sessionController.deleteLastGameOfSession = async (req, res) => {
             message: 'Error deleting the last game of the session and updating scores',
             error: error.message,
         });
+    }
+};
+
+sessionController.addStar = async (req, res) => {
+    try {
+        const guiltyType = req.body.type;
+        const playerId = req.params.playerId;
+        const sessionId = req.params.sessionId;
+
+        console.log('guiltyType', guiltyType);
+        console.log('playerId', playerId);
+        console.log('sessionId', sessionId);
+        const session = await Session.findById(sessionId);
+        if (!session) {
+            return res.status(404).json({message: 'Session not found.'});
+        }
+
+        const player = await Player.findById(playerId);
+        if (!player) {
+            return res.status(404).json({message: 'Player not found.'});
+        }
+
+        player.stars.push({type: guiltyType, date: new Date()});
+        await player.save();
+
+        const isThirdStar = (player.stars.length % 3 === 0);
+        if (isThirdStar) {
+            session.players.forEach(p => {
+                if (p.player.toString() === player._id.toString()) {
+                    p.score -= 100;
+                }
+
+                p.score += 25;
+            });
+        }
+
+        await session.save();
+        res.status(200).json({message: 'Star added successfully.'});
+
+    } catch (error) {
+        res.status(500).
+            json({message: 'Error adding star', error: error.message});
     }
 };
 

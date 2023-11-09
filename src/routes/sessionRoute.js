@@ -15,5 +15,6 @@ router.delete('/:id/deleteLastGame',
     sessionController.deleteLastGameOfSession);
 router.post('/:sessionId/addGame',
     sessionController.addGameToSessionAndUpdate);
+router.post('/addStar/:sessionId/:playerId', sessionController.addStar);
 
 module.exports = router;

@@ -473,6 +473,8 @@ statisticController.getPlayerStats = async (req, res) => {
             won: true,
         }).countDocuments();
 
+        const player = await Player.findById(playerId);
+        const countStars = player.stars.length;
         const winRate = (wonGames / totalGames * 100).toFixed(2);
 
         const betStats = await Game.aggregate([
@@ -563,6 +565,7 @@ statisticController.getPlayerStats = async (req, res) => {
 
         const stats = {
             winRate: winRate,
+            stars: countStars,
             bets: bets,
             takerRate: takerRate,
             partnerRate: partnerRate,

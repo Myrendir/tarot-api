@@ -27,17 +27,27 @@ const playerSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['USER', 'ADMIN'],
-        default: 'USER'
+        enum: ['USER', 'ADMIN', 'GUEST'],
+        default: 'USER',
     },
+    stars: [
+        {
+            type: {
+                type: String,
+            },
+            date: {
+                type: Date,
+            },
+        },
+    ],
     createdAt: {
         type: Date,
-        default: Date.now
+        default: Date.now,
     },
     updatedAt: {
         type: Date,
-        default: Date.now
-    }
+        default: Date.now,
+    },
 });
 
 playerSchema.pre('save', async function(next) {

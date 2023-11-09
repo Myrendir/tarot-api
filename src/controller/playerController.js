@@ -49,7 +49,6 @@ playerController.getAll = async (req, res) => {
     }
 };
 
-
 playerController.get = async (req, res) => {
     try {
         const player = await Player.findById(req.params.id);
