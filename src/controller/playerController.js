@@ -100,4 +100,19 @@ playerController.clearStars = async (req, res) => {
         res.status(500).json({message: 'Error clearing player stars', error});
     }
 }
+
+playerController.removeLastStar = async (req, res) => {
+    try {
+        const player = await Player.findById(req.params.id);
+        if (!player) {
+            return res.status(404).json({message: 'Player not found'});
+        }
+        player.stars.pop();
+        await player.save();
+        res.status(200).
+            json({message: 'Player last star removed successfully!', data: player});
+    } catch (error) {
+        res.status(500).json({message: 'Error removing player last star', error});
+    }
+}
 module.exports = playerController;
