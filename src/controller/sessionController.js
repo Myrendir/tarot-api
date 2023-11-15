@@ -257,9 +257,9 @@ sessionController.addStar = async (req, res) => {
             session.players.forEach(p => {
                 if (p.player.toString() === player._id.toString()) {
                     p.score -= 100;
+                } else {
+                    p.score += 25;
                 }
-
-                p.score += 25;
             });
         }
 
