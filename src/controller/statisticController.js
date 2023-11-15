@@ -494,19 +494,21 @@ statisticController.getPlayerStats = async (req, res) => {
                 },
             },
         ]);
+        const takerGames = await Game.find({
+            taker: playerId,
+        }).countDocuments();
+
         const bets = betStats.map((bet) => {
             return {
                 bet: bet._id,
                 count: bet.count,
-                percentage: (bet.count / totalGames * 100).toFixed(2),
+                percentage: (bet.count / takerGames * 100).toFixed(2),
             };
         });
 
         bets.sort((a, b) => b.count - a.count);
 
-        const takerGames = await Game.find({
-            taker: playerId,
-        }).countDocuments();
+
         const takerRate = (takerGames / totalGames * 100).toFixed(2);
 
         const partnerGames = await Game.find({
