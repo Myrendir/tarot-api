@@ -11,7 +11,7 @@ statisticController.getMostGamesTaken = async (req, res) => {
             {
                 $match: {
                     season: season,
-                }
+                },
             },
             {
                 $group: {
@@ -62,7 +62,7 @@ statisticController.getMostCalledPartners = async (req, res) => {
             {
                 $match: {
                     season: season,
-                }
+                },
             },
             {
                 $match: {partner: {$ne: null}},
@@ -157,7 +157,7 @@ statisticController.getBestWinPercentage = async (req, res) => {
             {
                 $match: {
                     season: season,
-                }
+                },
             },
             {
                 $group: {
@@ -405,7 +405,7 @@ statisticController.getBestAveragePointsPerGame = async (req, res) => {
             {
                 $match: {
                     season: season,
-                }
+                },
             },
             {
                 $unwind: '$players',
@@ -508,7 +508,6 @@ statisticController.getPlayerStats = async (req, res) => {
 
         bets.sort((a, b) => b.count - a.count);
 
-
         const takerRate = (takerGames / totalGames * 100).toFixed(2);
 
         const partnerGames = await Game.find({
@@ -582,6 +581,53 @@ statisticController.getPlayerStats = async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({error: 'Failed to fetch player stats.'});
+    }
+};
+
+/**
+ * Get top 10 players with most stars
+ * @param req
+ * @param res
+ * @returns {Promise<void>}
+ */
+statisticController.getTopStarred = async (req, res) => {
+    try {
+        const playersWithStarsCount = await Player.aggregate([
+            {
+                $project: {
+                    firstname: 1,
+                    lastname: 1,
+                    starsCount: {
+                        $size: {
+                            $ifNull: ['$stars', []],
+                        },
+                    },
+                },
+            },
+            {
+                $match: {
+                    starsCount: {$gt: 0},
+                },
+            },
+            {
+                $sort: {
+                    starsCount: -1,
+                    firstname: 1,
+                },
+            },
+            {
+                $limit: 10,
+            },
+        ]);
+
+        res.status(200).json(playersWithStarsCount);
+
+    } catch (err) {
+        res.status(500).
+            json({
+                error: 'Failed to fetch top starred players.',
+                message: err.message,
+            });
     }
 };
 

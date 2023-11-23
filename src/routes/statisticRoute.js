@@ -18,4 +18,6 @@ router.get('/bestAveragePointsPerGame/:season',
 
 router.get('/player/:id', statisticController.getPlayerStats);
 
+router.get('/topStarred', statisticController.getTopStarred);
+
 module.exports = router;
