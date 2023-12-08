@@ -272,5 +272,22 @@ sessionController.addStar = async (req, res) => {
     }
 };
 
+sessionController.getLatestSessions = async (req, res) => {
+    try {
+        const latestSessions = await Session.find().
+            sort({updatedAt: -1}).
+            limit(5);
+
+        console.log('latestSessions', latestSessions);
+        res.status(200).json(latestSessions);
+    } catch (error) {
+        res.status(500).
+            json({
+                message: 'Error retrieving latest sessions',
+                error: error.message,
+            });
+    }
+};
+
 module.exports = sessionController;
 
