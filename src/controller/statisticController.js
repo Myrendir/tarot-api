@@ -47,7 +47,7 @@ statisticController.getMostGamesTaken = async (req, res) => {
 
         if (event === 'final') {
             let startDate = new Date();
-            startDate.setHours(11, 0, 0, 0);
+            startDate.setHours(18, 0, 0, 0);
             let endDate = new Date();
             endDate.setHours(23, 59, 59, 999);
             pipeline.unshift({
@@ -117,7 +117,7 @@ statisticController.getMostCalledPartners = async (req, res) => {
 
         if (event === 'final') {
             let startDate = new Date();
-            startDate.setHours(11, 0, 0, 0);
+            startDate.setHours(18, 0, 0, 0);
             let endDate = new Date();
             endDate.setHours(23, 59, 59, 999);
             pipeline.unshift({
@@ -257,7 +257,7 @@ statisticController.getBestWinPercentage = async (req, res) => {
 
         if (event === 'final') {
             let startDate = new Date();
-            startDate.setHours(11, 0, 0, 0);
+            startDate.setHours(18, 0, 0, 0);
             let endDate = new Date();
             endDate.setHours(23, 59, 59, 999);
             pipeline.unshift({
@@ -450,7 +450,7 @@ statisticController.getMostPointsCumulated = async (req, res) => {
 
         if (event === 'final') {
             let startDate = new Date();
-            startDate.setHours(11, 0, 0, 0);
+            startDate.setHours(18, 0, 0, 0);
             let endDate = new Date();
             endDate.setHours(23, 59, 59, 999);
             pipeline.unshift({
@@ -673,7 +673,7 @@ statisticController.getTopStarred = async (req, res) => {
     try {
         const event = req.query.event;
         let startDate = new Date();
-        startDate.setHours(11, 0, 0, 0);
+        startDate.setHours(18, 0, 0, 0);
         let endDate = new Date();
         endDate.setHours(23, 59, 59, 999);
 
