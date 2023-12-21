@@ -3,7 +3,6 @@ const {Game} = require('../model/game');
 const Player = require('../model/player');
 const {getPoint} = require(
     '../service/tarotCalculator');
-const mongoose = require('mongoose');
 const sessionController = {};
 
 sessionController.create = async (req, res) => {
