@@ -750,4 +750,6 @@ statisticController.getScoresForCurrentWeek = async (req, res) => {
     }
 };
 
+
+
 module.exports = statisticController;
