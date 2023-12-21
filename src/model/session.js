@@ -1,44 +1,40 @@
 const mongoose = require('mongoose');
 
 const getSeason = (date) => {
-
-    // On décale de -1 car les mois commencent à 0 en js
+    // On décale de -1 car les mois commencent à 0 en JavaScript
     const autumn2023 = [
         'autumn2023',
-        [new Date(2023, 8, 23), new Date(2023, 11, 21, 23, 59, 59)]];
+        [new Date(2023, 8, 23), new Date(2023, 11, 21, 23, 59, 59)]
+    ];
     const winter2023 = [
         'winter2023',
-        [new Date(2024, 11, 22), new Date(2024, 2, 19, 23, 59, 59)]];
+        [new Date(2023, 11, 22), new Date(2024, 2, 19, 23, 59, 59)]
+    ];
     const spring2024 = [
         'spring2024',
-        [new Date(2024, 2, 20), new Date(2024, 5, 19, 23, 59, 59)]];
+        [new Date(2024, 2, 20), new Date(2024, 5, 19, 23, 59, 59)]
+    ];
     const summer2024 = [
         'summer2024',
-        [new Date(2024, 5, 20), new Date(2024, 8, 21, 23, 59, 59 )]];
+        [new Date(2024, 5, 20), new Date(2024, 8, 21, 23, 59, 59)]
+    ];
 
-    /* if (date >= autumn2023[0] && date <= autumn2023[1]) {
-         return 'autumn2023';
-     } else if (date >= winter2023[0] && date <= winter2023[1]) {
-         return 'winter2023';
-     } else if (date >= spring2024[0] && date <= spring2024[1]) {
-         return 'spring2024';
-     } else if (date >= summer2024[0] && date <= summer2024[1]) {
-         return 'summer2024';
-     } else {
-         return '';
-     }*/
-
-    return Object.keys({
+    const seasons = {
         autumn2023,
         winter2023,
         spring2024,
         summer2024,
-    }).find(key => {
-        const [start, end] = eval(key);
-        return date >= start && date <= end;
-    });
+    };
 
+    for (const [season, [start, end]] of Object.values(seasons)) {
+        if (date >= start && date <= end) {
+            return season;
+        }
+    }
+
+    return undefined;
 };
+
 const sessionSchema = new mongoose.Schema({
     players: [
         {
