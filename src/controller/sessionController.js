@@ -87,6 +87,7 @@ sessionController.addGameToSessionAndUpdate = async (req, res) => {
         const session = await Session.findById(req.params.sessionId);
         const currentSeason = getSeason(new Date());
 
+        console.log('currentSeason', currentSeason);
         if (!session) {
             return res.status(404).send({message: 'Session not found'});
         }
@@ -236,9 +237,6 @@ sessionController.addStar = async (req, res) => {
         const playerId = req.params.playerId;
         const sessionId = req.params.sessionId;
 
-        console.log('guiltyType', guiltyType);
-        console.log('playerId', playerId);
-        console.log('sessionId', sessionId);
         const session = await Session.findById(sessionId);
         if (!session) {
             return res.status(404).json({message: 'Session not found.'});

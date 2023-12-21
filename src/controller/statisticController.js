@@ -7,8 +7,8 @@ const statisticController = {};
 statisticController.getMostGamesTaken = async (req, res) => {
     try {
         const season = req.params.season;
+        const event = req.query.event;
 
-        // Créez un pipeline d'agrégation de base
         let pipeline = [
             {
                 $group: {
@@ -41,12 +41,24 @@ statisticController.getMostGamesTaken = async (req, res) => {
                 },
             },
             {
-                $limit: 10,
+                $limit: 30,
             },
         ];
 
-        // Ajoutez l'étape $match uniquement si la saison n'est pas null
-        if (season !== 'none') {
+        if (event === 'final') {
+            let startDate = new Date();
+            startDate.setHours(11, 0, 0, 0);
+            let endDate = new Date();
+            endDate.setHours(23, 59, 59, 999);
+            pipeline.unshift({
+                $match: {
+                    createdAt: {
+                        $gte: startDate,
+                        $lte: endDate,
+                    },
+                },
+            });
+        } else if (season !== 'none') {
             pipeline.unshift({
                 $match: {
                     season: season,
@@ -65,13 +77,9 @@ statisticController.getMostGamesTaken = async (req, res) => {
 statisticController.getMostCalledPartners = async (req, res) => {
     try {
         const season = req.params.season;
+        const event = req.query.event;
 
-        const topCalledPartners = await Game.aggregate([
-            {
-                $match: {
-                    season: season,
-                },
-            },
+        let pipeline = [
             {
                 $match: {partner: {$ne: null}},
             },
@@ -105,7 +113,29 @@ statisticController.getMostCalledPartners = async (req, res) => {
                     firstname: 1,
                 },
             },
-        ]);
+        ];
+
+        if (event === 'final') {
+            let startDate = new Date();
+            startDate.setHours(11, 0, 0, 0);
+            let endDate = new Date();
+            endDate.setHours(23, 59, 59, 999);
+            pipeline.unshift({
+                $match: {
+                    createdAt: {
+                        $gte: startDate,
+                        $lte: endDate,
+                    },
+                },
+            });
+        } else if (season !== 'none') {
+            pipeline.unshift({
+                $match: {
+                    season: season,
+                },
+            });
+        }
+        const topCalledPartners = await Game.aggregate(pipeline);
 
         res.json(topCalledPartners);
     } catch (err) {
@@ -160,13 +190,9 @@ statisticController.getPlayersWithMostChelems = async (req, res) => {
 statisticController.getBestWinPercentage = async (req, res) => {
     try {
         const season = req.params.season;
+        const event = req.query.event;
 
-        const bestWinPercentagePlayers = await Game.aggregate([
-            {
-                $match: {
-                    season: season,
-                },
-            },
+        let pipeline = [
             {
                 $group: {
                     _id: '$taker',
@@ -175,7 +201,7 @@ statisticController.getBestWinPercentage = async (req, res) => {
                 },
             },
             {
-                $match: {totalGames: {$gte: 6}},
+                $match: {totalGames: {$gte: 3}},
             },
             {
                 $project: {
@@ -227,7 +253,30 @@ statisticController.getBestWinPercentage = async (req, res) => {
                     firstname: 1,
                 },
             },
-        ]);
+        ];
+
+        if (event === 'final') {
+            let startDate = new Date();
+            startDate.setHours(11, 0, 0, 0);
+            let endDate = new Date();
+            endDate.setHours(23, 59, 59, 999);
+            pipeline.unshift({
+                $match: {
+                    createdAt: {
+                        $gte: startDate,
+                        $lte: endDate,
+                    },
+                },
+            });
+        } else if (season !== 'none') {
+            pipeline.unshift({
+                $match: {
+                    season: season,
+                },
+            });
+        }
+
+        const bestWinPercentagePlayers = await Game.aggregate(pipeline);
 
         res.json(bestWinPercentagePlayers);
     } catch (err) {
@@ -359,13 +408,9 @@ statisticController.getMostWinrateForBet = async (req, res) => {
 statisticController.getMostPointsCumulated = async (req, res) => {
     try {
         const season = req.params.season;
+        const event = req.query.event;
 
-        const topPlayersByPoints = await Game.aggregate([
-            {
-                $match: {
-                    season: season,
-                },
-            },
+        let pipeline = [
             {
                 $unwind: '$players',
             },
@@ -398,7 +443,33 @@ statisticController.getMostPointsCumulated = async (req, res) => {
                     totalPoints: -1,
                 },
             },
-        ]);
+            {
+                $limit: 30,
+            },
+        ];
+
+        if (event === 'final') {
+            let startDate = new Date();
+            startDate.setHours(11, 0, 0, 0);
+            let endDate = new Date();
+            endDate.setHours(23, 59, 59, 999);
+            pipeline.unshift({
+                $match: {
+                    createdAt: {
+                        $gte: startDate,
+                        $lte: endDate,
+                    },
+                },
+            });
+        } else if (season !== 'none') {
+            pipeline.unshift({
+                $match: {
+                    season: season,
+                },
+            });
+        }
+
+        const topPlayersByPoints = await Game.aggregate(pipeline);
 
         res.json(topPlayersByPoints);
     } catch (err) {
@@ -600,7 +671,47 @@ statisticController.getPlayerStats = async (req, res) => {
  */
 statisticController.getTopStarred = async (req, res) => {
     try {
-        const playersWithStarsCount = await Player.aggregate([
+        const event = req.query.event;
+        let startDate = new Date();
+        startDate.setHours(11, 0, 0, 0);
+        let endDate = new Date();
+        endDate.setHours(23, 59, 59, 999);
+
+        let pipeline = [
+            {
+                $project: {
+                    firstname: 1,
+                    lastname: 1,
+                    stars: 1,
+                },
+            },
+            ...(event === 'final' ? [
+                {
+                    $project: {
+                        firstname: 1,
+                        lastname: 1,
+                        stars: {
+                            $filter: {
+                                input: '$stars',
+                                as: 'star',
+                                cond: {
+                                    $and: [
+                                        {
+                                            $gte: [
+                                                '$$star.date',
+                                                startDate],
+                                        },
+                                        {
+                                            $lte: [
+                                                '$$star.date',
+                                                endDate],
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                }] : []),
             {
                 $project: {
                     firstname: 1,
@@ -624,9 +735,11 @@ statisticController.getTopStarred = async (req, res) => {
                 },
             },
             {
-                $limit: 10,
+                $limit: 30,
             },
-        ]);
+        ];
+
+        const playersWithStarsCount = await Player.aggregate(pipeline);
 
         res.status(200).json(playersWithStarsCount);
 
@@ -749,7 +862,5 @@ statisticController.getScoresForCurrentWeek = async (req, res) => {
             json({error: 'Failed to fetch scores for the current week.'});
     }
 };
-
-
 
 module.exports = statisticController;
