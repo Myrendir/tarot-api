@@ -3,7 +3,6 @@ const {Game} = require('../model/game');
 const Player = require('../model/player');
 const {getPoint} = require(
     '../service/tarotCalculator');
-const mongoose = require('mongoose');
 const sessionController = {};
 
 sessionController.create = async (req, res) => {
@@ -137,6 +136,7 @@ sessionController.checkExistingSession = async (req, res) => {
                 'players.player': {$all: players},
                 season: currentSeason,
             },
+            {},
         );
 
         if (existingSession) {
@@ -153,29 +153,30 @@ sessionController.checkExistingSession = async (req, res) => {
 exports.getUpdatedScores = (game, session) => {
     const point = getPoint(game);
 
+    let creditedPoints = 0;
+    game.won = point > 0;
     session.players.forEach(player => {
         if (player.player._id.toString() === game.taker) {
-            game.won = point > 0;
-            let takerPoints = point;
-            if (!game.partner) {
-                takerPoints *= 2;
-                game.partner = game.taker;
-            }
-            player.score += takerPoints;
-            const takerPlayer = game.players.find(p => p.player.toString() ===
-                player.player._id.toString());
-            takerPlayer.score = takerPoints;
-        } else if (game.partner && player.player._id.toString() ===
-            game.partner) {
-            player.score += (point / 2);
-            game.players.find(p => p.player.toString() ===
-                player.player._id.toString()).score = point / 2;
-        } else {
-            player.score -= point / 2;
-            game.players.find(p => p.player.toString() ===
-                player.player._id.toString()).score = -point / 2;
+            return;
         }
+        const isPartner = game.partner && player.player._id.toString() ===
+            game.partner;
+        const playerGameScore = point * (isPartner ? 1 : -1);
+        player.score += playerGameScore;
+
+        game.players.find(p => p.player.toString() ===
+            player.player._id.toString()).score = playerGameScore;
+
+        creditedPoints += playerGameScore;
+
     });
+
+    const taker = session.players.find(p => p.player._id.toString() ===
+        game.taker);
+
+    taker.score -= creditedPoints;
+    game.players.find(p => p.player.toString() ===
+        taker.player._id.toString()).score = -creditedPoints;
 
     return {session, game};
 };
@@ -276,7 +277,6 @@ sessionController.getLatestSessions = async (req, res) => {
             sort({updatedAt: -1}).
             limit(5);
 
-        console.log('latestSessions', latestSessions);
         res.status(200).json(latestSessions);
     } catch (error) {
         res.status(500).
