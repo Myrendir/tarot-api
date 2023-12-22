@@ -7,6 +7,7 @@ const isAdmin = require('../middleware/isAdmin');
 
 router.post('/', sessionController.create);
 router.get('/latest', sessionController.getLatestSessions);
+router.get('/check', sessionController.checkExistingSession);
 router.get('/:id', sessionController.get);
 router.get('/count', sessionController.count);
 router.put('/:id', sessionController.update);

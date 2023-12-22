@@ -3,6 +3,7 @@ const {Game} = require('../model/game');
 const Player = require('../model/player');
 const {getPoint} = require(
     '../service/tarotCalculator');
+const mongoose = require('mongoose');
 const sessionController = {};
 
 sessionController.create = async (req, res) => {
@@ -86,7 +87,6 @@ sessionController.addGameToSessionAndUpdate = async (req, res) => {
         const session = await Session.findById(req.params.sessionId);
         const currentSeason = getSeason(new Date());
 
-        console.log('currentSeason', currentSeason);
         if (!session) {
             return res.status(404).send({message: 'Session not found'});
         }
@@ -131,16 +131,13 @@ sessionController.checkExistingSession = async (req, res) => {
 
         const currentSeason = getSeason(new Date());
 
-        const existingSession = await Session.findOne(
-            {
-                'players.player': {$all: players},
-                season: currentSeason,
-            },
-            {},
-        );
+        const existingSession = await Session.find({
+            'players.player': {$all: players},
+            season: currentSeason,
+        }, {}, {limit: 1});
 
         if (existingSession) {
-            return res.status(200).send({sessionId: existingSession._id});
+            return res.status(200).send({sessionId: existingSession[0]._id});
         } else {
             return res.status(404).send({message: 'No session found.'});
         }
