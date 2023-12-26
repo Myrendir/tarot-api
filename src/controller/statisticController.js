@@ -666,6 +666,11 @@ statisticController.getTopStarred = async (req, res) => {
 
         let pipeline = [
             {
+                $match: {
+                    active: true,
+                },
+            },
+            {
                 $project: {
                     firstname: 1,
                     lastname: 1,
