@@ -713,6 +713,7 @@ statisticController.getTopStarred = async (req, res) => {
             {
                 $match: {
                     starsCount: {$gt: 0},
+                    active: true,
                 },
             },
             {
