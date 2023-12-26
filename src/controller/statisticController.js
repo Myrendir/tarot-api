@@ -671,6 +671,9 @@ statisticController.getTopStarred = async (req, res) => {
                     lastname: 1,
                     stars: 1,
                 },
+                $match: {
+                    active: true,
+                },
             },
             ...(event === 'final' ? [
                 {
@@ -713,7 +716,6 @@ statisticController.getTopStarred = async (req, res) => {
             {
                 $match: {
                     starsCount: {$gt: 0},
-                    active: true,
                 },
             },
             {
