@@ -40,9 +40,7 @@ statisticController.getMostGamesTaken = async (req, res) => {
                     firstname: 1,
                 },
             },
-            {
-                $limit: 30,
-            },
+
         ];
 
         if (event === 'final') {
@@ -159,9 +157,6 @@ statisticController.getPlayersWithMostChelems = async (req, res) => {
                 $sort: {count: -1, firstname: 1},
             },
             {
-                $limit: 10,
-            },
-            {
                 $lookup: {
                     from: Player.collection.name,
                     localField: '_id',
@@ -222,9 +217,6 @@ statisticController.getBestWinPercentage = async (req, res) => {
                     winPercentage: -1,
                     totalGames: -1,
                 },
-            },
-            {
-                $limit: 10,
             },
             {
                 $lookup: {
@@ -443,9 +435,7 @@ statisticController.getMostPointsCumulated = async (req, res) => {
                     totalPoints: -1,
                 },
             },
-            {
-                $limit: 30,
-            },
+
         ];
 
         if (event === 'final') {
@@ -526,9 +516,6 @@ statisticController.getBestAveragePointsPerGame = async (req, res) => {
             },
             {
                 $sort: {averagePoints: -1, totalGames: -1, firstname: 1},
-            },
-            {
-                $limit: 10,
             },
         ]);
 
@@ -733,9 +720,6 @@ statisticController.getTopStarred = async (req, res) => {
                     starsCount: -1,
                     firstname: 1,
                 },
-            },
-            {
-                $limit: 30,
             },
         ];
 
