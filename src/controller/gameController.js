@@ -114,4 +114,15 @@ gameController.getGamesWithNonZeroScores = async (req, res) => {
     }
 };
 
+gameController.getLatestGame = async (req, res) => {
+    try {
+        const game = await Game.find().sort({ _id: -1 }).limit(1);
+
+        res.json(game);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to fetch latest game.' });
+    }
+}
+
 module.exports = gameController;
