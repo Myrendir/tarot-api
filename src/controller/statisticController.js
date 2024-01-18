@@ -118,25 +118,31 @@ statisticController.getMostCalledPartners = async (req, res) => {
             },
         ];
 
-        if (event === 'final') {
-            let startDate = new Date();
-            startDate.setHours(18, 0, 0, 0);
-            let endDate = new Date();
-            endDate.setHours(23, 59, 59, 999);
-            pipeline.unshift({
-                $match: {
-                    createdAt: {
-                        $gte: startDate,
-                        $lte: endDate,
-                    },
-                },
-            });
-        } else if (season !== 'none') {
+        if (season !== 'none') {
             pipeline.unshift({
                 $match: {
                     season: season,
                 },
             });
+            if (event === 'final') {
+                let startDate = getFinalDate(season)[1];
+                startDate = new Date(startDate.getFullYear(),
+                    startDate.getMonth(),
+                    startDate.getDate(), 18, 0, 0, 0);
+                let endDate = getFinalDate(season)[1];
+                endDate = new Date(endDate.getFullYear(), endDate.getMonth(),
+                    endDate.getDate(), 23, 59, 59, 999);
+
+                pipeline.unshift({
+                    $match: {
+                        season: season,
+                        createdAt: {
+                            $gte: startDate,
+                            $lte: endDate,
+                        },
+                    },
+                });
+            }
         }
         const topCalledPartners = await Game.aggregate(pipeline);
 
@@ -252,25 +258,31 @@ statisticController.getBestWinPercentage = async (req, res) => {
             },
         ];
 
-        if (event === 'final') {
-            let startDate = new Date();
-            startDate.setHours(18, 0, 0, 0);
-            let endDate = new Date();
-            endDate.setHours(23, 59, 59, 999);
-            pipeline.unshift({
-                $match: {
-                    createdAt: {
-                        $gte: startDate,
-                        $lte: endDate,
-                    },
-                },
-            });
-        } else if (season !== 'none') {
+        if (season !== 'none') {
             pipeline.unshift({
                 $match: {
                     season: season,
                 },
             });
+            if (event === 'final') {
+                let startDate = getFinalDate(season)[1];
+                startDate = new Date(startDate.getFullYear(),
+                    startDate.getMonth(),
+                    startDate.getDate(), 18, 0, 0, 0);
+                let endDate = getFinalDate(season)[1];
+                endDate = new Date(endDate.getFullYear(), endDate.getMonth(),
+                    endDate.getDate(), 23, 59, 59, 999);
+
+                pipeline.unshift({
+                    $match: {
+                        season: season,
+                        createdAt: {
+                            $gte: startDate,
+                            $lte: endDate,
+                        },
+                    },
+                });
+            }
         }
 
         const bestWinPercentagePlayers = await Game.aggregate(pipeline);
@@ -445,25 +457,31 @@ statisticController.getMostPointsCumulated = async (req, res) => {
         ];
 
         // Conditional filtering for 'final' event or specific season
-        if (event === 'final') {
-            let startDate = new Date();
-            startDate.setHours(18, 0, 0, 0);
-            let endDate = new Date();
-            endDate.setHours(23, 59, 59, 999);
-            pipeline.unshift({
-                $match: {
-                    createdAt: {
-                        $gte: startDate,
-                        $lte: endDate,
-                    },
-                },
-            });
-        } else if (season !== 'none') {
+        if (season !== 'none') {
             pipeline.unshift({
                 $match: {
                     season: season,
                 },
             });
+            if (event === 'final') {
+                let startDate = getFinalDate(season)[1];
+                startDate = new Date(startDate.getFullYear(),
+                    startDate.getMonth(),
+                    startDate.getDate(), 18, 0, 0, 0);
+                let endDate = getFinalDate(season)[1];
+                endDate = new Date(endDate.getFullYear(), endDate.getMonth(),
+                    endDate.getDate(), 23, 59, 59, 999);
+
+                pipeline.unshift({
+                    $match: {
+                        season: season,
+                        createdAt: {
+                            $gte: startDate,
+                            $lte: endDate,
+                        },
+                    },
+                });
+            }
         }
 
         const topPlayersByPoints = await Game.aggregate(pipeline);
