@@ -43,27 +43,28 @@ statisticController.getMostGamesTaken = async (req, res) => {
 
         ];
 
-        if (event === 'final') {
-            let startDate = getFinalDate(season)[1];
-            startDate.setHours(18, 0, 0, 0);
-            let endDate = getFinalDate(season)[1];
-            endDate.setHours(23, 59, 59, 999);
-            pipeline.unshift({
-                $match: {
-                    createdAt: {
-                        $gte: startDate,
-                        $lte: endDate,
-                    },
-                },
-            });
-        } else if (season !== 'none') {
+        if (season !== 'none') {
             pipeline.unshift({
                 $match: {
                     season: season,
                 },
             });
+            if (event === 'final') {
+                let startDate = getFinalDate(season)[1];
+                startDate.setHours(18, 0, 0, 0);
+                let endDate = getFinalDate(season)[1];
+                endDate.setHours(23, 59, 59, 999);
+                pipeline.unshift({
+                    $match: {
+                        season: season,
+                        createdAt: {
+                            $gte: startDate,
+                            $lte: endDate,
+                        },
+                    },
+                });
+            }
         }
-
         const topTakers = await Game.aggregate(pipeline);
 
         res.json(topTakers);
