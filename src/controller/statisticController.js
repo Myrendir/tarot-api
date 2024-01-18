@@ -1,6 +1,6 @@
 const {Game} = require('../model/game');
 const Player = require('../model/player');
-const {Session} = require('../model/session');
+const {Session, getFinalDate} = require('../model/session');
 const mongoose = require('mongoose');
 const statisticController = {};
 
@@ -44,9 +44,9 @@ statisticController.getMostGamesTaken = async (req, res) => {
         ];
 
         if (event === 'final') {
-            let startDate = new Date();
+            let startDate = getFinalDate(season)[1];
             startDate.setHours(18, 0, 0, 0);
-            let endDate = new Date();
+            let endDate = getFinalDate(season)[1];
             endDate.setHours(23, 59, 59, 999);
             pipeline.unshift({
                 $match: {
@@ -410,6 +410,7 @@ statisticController.getMostPointsCumulated = async (req, res) => {
                 $group: {
                     _id: '$players.player',
                     totalPoints: {$sum: '$players.score'},
+                    gameCount: {$sum: 1},
                 },
             },
             {
@@ -428,6 +429,7 @@ statisticController.getMostPointsCumulated = async (req, res) => {
                     firstname: '$playerDetails.firstname',
                     lastname: '$playerDetails.lastname',
                     totalPoints: 1,
+                    gameCount: 1,
                 },
             },
             {
@@ -435,9 +437,9 @@ statisticController.getMostPointsCumulated = async (req, res) => {
                     totalPoints: -1,
                 },
             },
-
         ];
 
+        // Conditional filtering for 'final' event or specific season
         if (event === 'final') {
             let startDate = new Date();
             startDate.setHours(18, 0, 0, 0);
