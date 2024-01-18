@@ -51,9 +51,13 @@ statisticController.getMostGamesTaken = async (req, res) => {
             });
             if (event === 'final') {
                 let startDate = getFinalDate(season)[1];
-                startDate.setHours(18, 0, 0, 0);
+                startDate = new Date(startDate.getFullYear(),
+                    startDate.getMonth(),
+                    startDate.getDate(), 18, 0, 0, 0);
                 let endDate = getFinalDate(season)[1];
-                endDate.setHours(23, 59, 59, 999);
+                endDate = new Date(endDate.getFullYear(), endDate.getMonth(),
+                    endDate.getDate(), 23, 59, 59, 999);
+
                 pipeline.unshift({
                     $match: {
                         season: season,
