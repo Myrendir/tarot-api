@@ -17,7 +17,7 @@ router.get('/mostPointsCumulated/:season',
 router.get('/bestAveragePointsPerGame/:season',
     statisticController.getBestAveragePointsPerGame);
 router.get('/player/:id', statisticController.getPlayerStats);
-router.get('/topStarred', statisticController.getTopStarred);
+router.get('/topStarred/:season', statisticController.getTopStarred);
 router.get('/getCurrentWeekScore', statisticController.getScoresForCurrentWeek);
 
 module.exports = router;

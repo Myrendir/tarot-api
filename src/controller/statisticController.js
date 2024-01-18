@@ -682,12 +682,32 @@ statisticController.getPlayerStats = async (req, res) => {
  * @returns {Promise<void>}
  */
 statisticController.getTopStarred = async (req, res) => {
+    let startDate;
+    let endDate;
     try {
         const event = req.query.event;
-        let startDate = new Date();
-        startDate.setHours(18, 0, 0, 0);
-        let endDate = new Date();
-        endDate.setHours(23, 59, 59, 999);
+
+        const season = req.params.season;
+        console.log(season);
+        if (season !== 'none') {
+            startDate = getFinalDate(season)[0];
+            startDate = new Date(startDate.getFullYear(),
+                startDate.getMonth(),
+                startDate.getDate(), 0, 0, 0, 0);
+            endDate = getFinalDate(season)[1];
+            endDate = new Date(endDate.getFullYear(), endDate.getMonth(),
+                endDate.getDate(), 23, 59, 59, 999);
+        }
+
+        if (event === 'final') {
+            startDate = getFinalDate(season)[1];
+            startDate = new Date(startDate.getFullYear(),
+                startDate.getMonth(),
+                startDate.getDate(), 18, 0, 0, 0);
+            endDate = getFinalDate(season)[1];
+            endDate = new Date(endDate.getFullYear(), endDate.getMonth(),
+                endDate.getDate(), 23, 59, 59, 999);
+        }
 
         let pipeline = [
             {
@@ -702,33 +722,6 @@ statisticController.getTopStarred = async (req, res) => {
                     stars: 1,
                 },
             },
-            ...(event === 'final' ? [
-                {
-                    $project: {
-                        firstname: 1,
-                        lastname: 1,
-                        stars: {
-                            $filter: {
-                                input: '$stars',
-                                as: 'star',
-                                cond: {
-                                    $and: [
-                                        {
-                                            $gte: [
-                                                '$$star.date',
-                                                startDate],
-                                        },
-                                        {
-                                            $lte: [
-                                                '$$star.date',
-                                                endDate],
-                                        },
-                                    ],
-                                },
-                            },
-                        },
-                    },
-                }] : []),
             {
                 $project: {
                     firstname: 1,
@@ -752,6 +745,21 @@ statisticController.getTopStarred = async (req, res) => {
                 },
             },
         ];
+
+        if (startDate && endDate) {
+            pipeline.unshift({
+                $match: {
+                    stars: {
+                        $elemMatch: {
+                            date: {
+                                $gte: startDate,
+                                $lte: endDate,
+                            },
+                        },
+                    },
+                },
+            });
+        }
 
         const playersWithStarsCount = await Player.aggregate(pipeline);
 
