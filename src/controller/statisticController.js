@@ -1,6 +1,6 @@
 const {Game} = require('../model/game');
 const Player = require('../model/player');
-const {Session, getFinalDate} = require('../model/session');
+const {Session, getFinalDate, getFirstDate} = require('../model/session');
 const mongoose = require('mongoose');
 const statisticController = {};
 
@@ -456,7 +456,6 @@ statisticController.getMostPointsCumulated = async (req, res) => {
             },
         ];
 
-        // Conditional filtering for 'final' event or specific season
         if (season !== 'none') {
             pipeline.unshift({
                 $match: {
@@ -675,41 +674,24 @@ statisticController.getPlayerStats = async (req, res) => {
     }
 };
 
-/**
- * Get top 10 players with most stars
- * @param req
- * @param res
- * @returns {Promise<void>}
- */
 statisticController.getTopStarred = async (req, res) => {
-    let startDate;
-    let endDate;
     try {
-        const event = req.query.event;
-
         const season = req.params.season;
-        console.log(season);
+        const event = req.query.event;
+        let startDate, endDate;
+
+        // Définir les dates de début et de fin si la saison est spécifiée
         if (season !== 'none') {
-            startDate = getFinalDate(season)[0];
-            startDate = new Date(startDate.getFullYear(),
-                startDate.getMonth(),
-                startDate.getDate(), 0, 0, 0, 0);
-            endDate = getFinalDate(season)[1];
-            endDate = new Date(endDate.getFullYear(), endDate.getMonth(),
-                endDate.getDate(), 23, 59, 59, 999);
+            [startDate, endDate] = getFinalDate(season);
+
+            // Si l'événement est final, ajuster les dates de début et de fin
+            if (event === 'final') {
+                endDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 23, 59, 59, 999);
+                startDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 18, 0, 0, 0);
+            }
         }
 
-        if (event === 'final') {
-            startDate = getFinalDate(season)[1];
-            startDate = new Date(startDate.getFullYear(),
-                startDate.getMonth(),
-                startDate.getDate(), 18, 0, 0, 0);
-            endDate = getFinalDate(season)[1];
-            endDate = new Date(endDate.getFullYear(), endDate.getMonth(),
-                endDate.getDate(), 23, 59, 59, 999);
-        }
-
-        let pipeline = [
+        const pipeline = [
             {
                 $match: {
                     active: true,
@@ -719,23 +701,35 @@ statisticController.getTopStarred = async (req, res) => {
                 $project: {
                     firstname: 1,
                     lastname: 1,
-                    stars: 1,
+                    stars: {
+                        $ifNull: ['$stars', []],
+                    },
                 },
             },
             {
                 $project: {
                     firstname: 1,
                     lastname: 1,
-                    starsCount: {
+                    stars: 1,
+                    starsCount: season !== 'none' ? {
                         $size: {
-                            $ifNull: ['$stars', []],
+                            $filter: {
+                                input: "$stars",
+                                as: "star",
+                                cond: season !== 'none' ? {
+                                    $and: [
+                                        { $gte: ["$$star.date", startDate] },
+                                        { $lte: ["$$star.date", endDate] },
+                                    ],
+                                } : {},
+                            },
                         },
-                    },
+                    } : { $size: '$stars' },
                 },
             },
             {
                 $match: {
-                    starsCount: {$gt: 0},
+                    starsCount: { $gt: 0 },
                 },
             },
             {
@@ -744,36 +738,31 @@ statisticController.getTopStarred = async (req, res) => {
                     firstname: 1,
                 },
             },
-        ];
-
-        if (startDate && endDate) {
-            pipeline.unshift({
-                $match: {
-                    stars: {
-                        $elemMatch: {
-                            date: {
-                                $gte: startDate,
-                                $lte: endDate,
-                            },
-                        },
-                    },
+            {
+                $project: {
+                    firstname: 1,
+                    lastname: 1,
+                    starsCount: 1,
                 },
-            });
-        }
+            },
+        ];
 
         const playersWithStarsCount = await Player.aggregate(pipeline);
 
         res.status(200).json(playersWithStarsCount);
-
     } catch (err) {
-        res.status(500).
-            json({
-                error: 'Failed to fetch top starred players.',
-                message: err.message,
-            });
+        res.status(500).json({
+            error: 'Échec de la récupération plus étoilés.',
+            message: err.message,
+        });
     }
 };
-
+/**
+ * Get top 10 players with most stars
+ * @param req
+ * @param res
+ * @returns {Promise<void>}
+ */
 statisticController.getScoresForCurrentWeek = async (req, res) => {
     try {
         const currentDate = new Date();

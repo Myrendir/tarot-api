@@ -32,9 +32,22 @@ const getSeason = (date) => {
     return undefined;
 };
 
+const getSeasonFromDate = (date) => {
+    const season = getSeason(date);
+
+    if (!season) {
+        throw new Error('No season found for date ' + date);
+    }
+
+    return season;
+
+};
+
+const getFirstDate = (season) => {
+    return seasons[season][0];
+};
 const getFinalDate = (season) => {
     return seasons[season][1];
-
 };
 const sessionSchema = new mongoose.Schema({
     players: [
@@ -86,4 +99,4 @@ sessionSchema.path('players').validate(function(players) {
 
 const Session = mongoose.model('Session', sessionSchema);
 
-module.exports = {Session, getSeason, getFinalDate};
+module.exports = {Session, getSeason, getFirstDate, getFinalDate};
