@@ -483,7 +483,7 @@ statisticController.getMostPointsCumulated = async (req, res) => {
             }
         }
 
-        const topPlayersByPoints = await Game.aggregate(pipeline);
+        const topPlayersByPoints = await Session.aggregate(pipeline);
 
         res.json(topPlayersByPoints);
     } catch (err) {
