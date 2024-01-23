@@ -421,14 +421,21 @@ statisticController.getMostPointsCumulated = async (req, res) => {
 
         const buildBaseMatch = (season, event) => {
             let match = {season: season};
+
+            let startDate = getFinalDate(season)[0];
+            let endDate = getFinalDate(season)[1];
             if (event === 'final') {
-                let startDate = getFinalDate(season)[0];
-                let endDate = getFinalDate(season)[1];
-                match.createdAt = {
-                    $gte: startDate,
-                    $lte: endDate,
-                };
+                startDate = new Date(endDate.getFullYear(),
+                    endDate.getMonth(),
+                    endDate.getDate(), 18, 0, 0, 0);
+                endDate = new Date(endDate.getFullYear(), endDate.getMonth(),
+                    endDate.getDate(), 23, 59, 59, 999);
             }
+
+            match.createdAt = {
+                $gte: startDate,
+                $lte: endDate,
+            };
             return match;
         };
 
