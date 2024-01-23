@@ -419,7 +419,23 @@ statisticController.getMostPointsCumulated = async (req, res) => {
         const season = req.params.season;
         const event = req.query.event;
 
-        let pipeline = [
+        const buildBaseMatch = (season, event) => {
+            let match = { season: season };
+            if (event === 'final') {
+                let startDate = getFinalDate(season)[0];
+                let endDate = getFinalDate(season)[1];
+                match.createdAt = {
+                    $gte: startDate,
+                    $lte: endDate,
+                };
+            }
+            return match;
+        };
+
+        let pipelinePoints = [
+            {
+                $match: buildBaseMatch(season, event)
+            },
             {
                 $unwind: '$players',
             },
@@ -427,68 +443,51 @@ statisticController.getMostPointsCumulated = async (req, res) => {
                 $group: {
                     _id: '$players.player',
                     totalPoints: {$sum: '$players.score'},
+                },
+            },
+            // ...
+        ];
+
+        let pipelineGames = [
+            {
+                $match: buildBaseMatch(season, event)
+            },
+            {
+                $unwind: '$players',
+            },
+            {
+                $group: {
+                    _id: '$players.player',
                     gameCount: {$sum: 1},
-                },
-            },
-            {
-                $lookup: {
-                    from: Player.collection.name,
-                    localField: '_id',
-                    foreignField: '_id',
-                    as: 'playerDetails',
-                },
-            },
-            {
-                $unwind: '$playerDetails',
-            },
-            {
-                $project: {
-                    firstname: '$playerDetails.firstname',
-                    lastname: '$playerDetails.lastname',
-                    totalPoints: 1,
-                    gameCount: 1,
-                },
-            },
-            {
-                $sort: {
-                    totalPoints: -1,
-                    firstname: 1,
                 },
             },
         ];
 
-        if (season !== 'none') {
-            pipeline.unshift({
-                $match: {
-                    season: season,
-                },
-            });
-            if (event === 'final') {
-                let startDate = getFinalDate(season)[1];
-                startDate = new Date(startDate.getFullYear(),
-                    startDate.getMonth(),
-                    startDate.getDate(), 18, 0, 0, 0);
-                let endDate = getFinalDate(season)[1];
-                endDate = new Date(endDate.getFullYear(), endDate.getMonth(),
-                    endDate.getDate(), 23, 59, 59, 999);
+        const [topPlayersByPoints, gameCounts] = await Promise.all([
+            Session.aggregate(pipelinePoints),
+            Game.aggregate(pipelineGames)
+        ]);
 
-                pipeline.unshift({
-                    $match: {
-                        season: season,
-                        createdAt: {
-                            $gte: startDate,
-                            $lte: endDate,
-                        },
-                    },
-                });
-            }
-        }
+        let playersDetails = await Player.find({
+            _id: { $in: topPlayersByPoints.map(p => p._id) }
+        });
 
-        const topPlayersByPoints = await Session.aggregate(pipeline);
+        const mergedResults = topPlayersByPoints.map(player => {
+            const gameCount = gameCounts.find(game => game._id.equals(player._id))?.gameCount || 0;
+            const playerDetails = playersDetails.find(p => p._id.equals(player._id));
+            return {
+                ...player,
+                gameCount,
+                firstname: playerDetails?.firstname,
+                lastname: playerDetails?.lastname
+            };
+        });
 
-        res.json(topPlayersByPoints);
+        mergedResults.sort((a, b) => b.totalPoints - a.totalPoints || a.firstname.localeCompare(b.firstname));
+
+        res.json(mergedResults);
     } catch (err) {
-        res.status(500).json({error: 'Failed to fetch top players by points.'});
+        res.status(500).json({error: 'Failed to fetch top players by points and games.'});
     }
 };
 
