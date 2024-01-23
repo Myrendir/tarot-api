@@ -452,6 +452,7 @@ statisticController.getMostPointsCumulated = async (req, res) => {
             {
                 $sort: {
                     totalPoints: -1,
+                    firstname: 1,
                 },
             },
         ];
