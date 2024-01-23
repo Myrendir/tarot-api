@@ -420,7 +420,7 @@ statisticController.getMostPointsCumulated = async (req, res) => {
         const event = req.query.event;
 
         const buildBaseMatch = (season, event) => {
-            let match = { season: season };
+            let match = {season: season};
             if (event === 'final') {
                 let startDate = getFinalDate(season)[0];
                 let endDate = getFinalDate(season)[1];
@@ -434,9 +434,6 @@ statisticController.getMostPointsCumulated = async (req, res) => {
 
         let pipelinePoints = [
             {
-                $match: buildBaseMatch(season, event)
-            },
-            {
                 $unwind: '$players',
             },
             {
@@ -445,13 +442,9 @@ statisticController.getMostPointsCumulated = async (req, res) => {
                     totalPoints: {$sum: '$players.score'},
                 },
             },
-            // ...
         ];
 
         let pipelineGames = [
-            {
-                $match: buildBaseMatch(season, event)
-            },
             {
                 $unwind: '$players',
             },
@@ -463,31 +456,44 @@ statisticController.getMostPointsCumulated = async (req, res) => {
             },
         ];
 
+        if (season !== 'none') {
+            pipelineGames.unshift({
+                $match: buildBaseMatch(season, event),
+            });
+
+            pipelinePoints.unshift({
+                $match: buildBaseMatch(season, event),
+            });
+        }
         const [topPlayersByPoints, gameCounts] = await Promise.all([
             Session.aggregate(pipelinePoints),
-            Game.aggregate(pipelineGames)
+            Game.aggregate(pipelineGames),
         ]);
 
         let playersDetails = await Player.find({
-            _id: { $in: topPlayersByPoints.map(p => p._id) }
+            _id: {$in: topPlayersByPoints.map(p => p._id)},
         });
 
         const mergedResults = topPlayersByPoints.map(player => {
-            const gameCount = gameCounts.find(game => game._id.equals(player._id))?.gameCount || 0;
-            const playerDetails = playersDetails.find(p => p._id.equals(player._id));
+            const gameCount = gameCounts.find(
+                game => game._id.equals(player._id))?.gameCount || 0;
+            const playerDetails = playersDetails.find(
+                p => p._id.equals(player._id));
             return {
                 ...player,
                 gameCount,
                 firstname: playerDetails?.firstname,
-                lastname: playerDetails?.lastname
+                lastname: playerDetails?.lastname,
             };
         });
 
-        mergedResults.sort((a, b) => b.totalPoints - a.totalPoints || a.firstname.localeCompare(b.firstname));
+        mergedResults.sort((a, b) => b.totalPoints - a.totalPoints ||
+            a.firstname.localeCompare(b.firstname));
 
         res.json(mergedResults);
     } catch (err) {
-        res.status(500).json({error: 'Failed to fetch top players by points and games.'});
+        res.status(500).
+            json({error: 'Failed to fetch top players by points and games.'});
     }
 };
 
@@ -686,8 +692,10 @@ statisticController.getTopStarred = async (req, res) => {
 
             // Si l'événement est final, ajuster les dates de début et de fin
             if (event === 'final') {
-                endDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 23, 59, 59, 999);
-                startDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 18, 0, 0, 0);
+                endDate = new Date(endDate.getFullYear(), endDate.getMonth(),
+                    endDate.getDate(), 23, 59, 59, 999);
+                startDate = new Date(endDate.getFullYear(), endDate.getMonth(),
+                    endDate.getDate(), 18, 0, 0, 0);
             }
         }
 
@@ -714,22 +722,22 @@ statisticController.getTopStarred = async (req, res) => {
                     starsCount: season !== 'none' ? {
                         $size: {
                             $filter: {
-                                input: "$stars",
-                                as: "star",
+                                input: '$stars',
+                                as: 'star',
                                 cond: season !== 'none' ? {
                                     $and: [
-                                        { $gte: ["$$star.date", startDate] },
-                                        { $lte: ["$$star.date", endDate] },
+                                        {$gte: ['$$star.date', startDate]},
+                                        {$lte: ['$$star.date', endDate]},
                                     ],
                                 } : {},
                             },
                         },
-                    } : { $size: '$stars' },
+                    } : {$size: '$stars'},
                 },
             },
             {
                 $match: {
-                    starsCount: { $gt: 0 },
+                    starsCount: {$gt: 0},
                 },
             },
             {
