@@ -6,6 +6,7 @@ const auth = require('../middleware/authentication');
 const isAdmin = require('../middleware/isAdmin');
 
 router.post('/', sessionController.create);
+/*router.get('/recalculateScores', sessionController.recalculateScores);*/
 router.get('/latest', sessionController.getLatestSessions);
 router.get('/check', sessionController.checkExistingSession);
 router.get('/:id', sessionController.get);
@@ -17,5 +18,4 @@ router.delete('/:id/deleteLastGame',
 router.post('/:sessionId/addGame',
     sessionController.addGameToSessionAndUpdate);
 router.post('/addStar/:sessionId/:playerId', sessionController.addStar);
-
 module.exports = router;
