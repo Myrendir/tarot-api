@@ -153,29 +153,16 @@ exports.getUpdatedScores = (game, session) => {
     let creditedPoints = 0;
     game.won = point > 0;
     session.players.forEach(player => {
-        console.log('Updating score for player', player.player._id.toString());
         if (player.player._id.toString() === game.taker) {
             return;
         }
         const isPartner = game.partner && player.player._id.toString() ===
             game.partner;
         const playerGameScore = point * (isPartner ? 1 : -1);
-
-        if (!player || player.score === undefined) {
-            console.error('Player not found or score undefined', player);
-            return;
-        }
-
         player.score += playerGameScore;
 
-        const gamePlayer = game.players.find(p => p.player.toString() ===
-            player.player._id.toString());
-
-        if (gamePlayer) {
-            gamePlayer.score = playerGameScore;
-        } else {
-            console.error('Game player not found', gamePlayer);
-        }
+        game.players.find(p => p.player.toString() ===
+            player.player._id.toString()).score = playerGameScore;
 
         creditedPoints += playerGameScore;
 
@@ -184,20 +171,9 @@ exports.getUpdatedScores = (game, session) => {
     const taker = session.players.find(p => p.player._id.toString() ===
         game.taker);
 
-    if (taker && taker.score !== undefined) {
-        taker.score += creditedPoints;
-    } else {
-        console.error('Taker not found or score undefined', taker);
-    }
-
-    const takerInGame = game.players.find(p => p.player.toString() ===
-        game.taker);
-
-    if (takerInGame) {
-        takerInGame.score = -creditedPoints;
-    } else {
-        console.error('Taker in game not found', takerInGame);
-    }
+    taker.score -= creditedPoints;
+    game.players.find(p => p.player.toString() ===
+        taker.player._id.toString()).score = -creditedPoints;
 
     return {session, game};
 };
@@ -305,71 +281,6 @@ sessionController.getLatestSessions = async (req, res) => {
                 message: 'Error retrieving latest sessions',
                 error: error.message,
             });
-    }
-};
-
-sessionController.recalculateScores = async (req, res) => {
-    try {
-        console.log('Starting recalculating scores...');
-        const sessions = await Session.find().populate({
-            path: 'games',
-            populate: {
-                path: 'players.player',
-            },
-        });
-
-        console.log('Found', sessions.length, 'sessions to recalculate.');
-        for (const session of sessions) {
-            console.log('Recalculating scores for session',
-                session._id.toString());
-            const originalStarScores = session.players.map(player => ({
-                playerId: player.player._id.toString(),
-                starScore: player.score,
-            }));
-
-            session.players.forEach(player => {
-                player.score = 0;
-            });
-
-            for (const game of session.games) {
-                console.log('Recalculating scores for game',
-                    game._id.toString());
-                const updatedScores = exports.getUpdatedScores(game, session);
-                Object.assign(game, updatedScores.game);
-                await game.save();
-            }
-
-            session.players.forEach(sessionPlayer => {
-                const gameScore = session.games.reduce((total, game) => {
-                    const gamePlayer = game.players.find(
-                        p => p.player.toString() ===
-                            sessionPlayer.player._id.toString());
-                    if (!gamePlayer) {
-                        console.error(
-                            'Game player not found during score aggregation:',
-                            sessionPlayer.player._id.toString());
-                        return total;
-                    }
-                    return total + gamePlayer.score;
-                }, 0);
-
-                const originalStarScore = originalStarScores.find(
-                    p => p.playerId ===
-                        sessionPlayer.player._id.toString())?.starScore || 0;
-                sessionPlayer.score = gameScore + originalStarScore;
-            });
-
-            await session.save();
-            console.log('Session', session._id.toString(),
-                'recalculated successfully.');
-        }
-
-        console.log('All sessions recalculated successfully.');
-        return res.status(200).
-            json({message: 'All session scores recalculated successfully.'});
-    } catch (e) {
-        console.error(e);
-        return res.status(500).json({message: 'Error recalculating scores.'});
     }
 };
 
