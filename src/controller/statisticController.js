@@ -693,9 +693,11 @@ statisticController.getTopStarred = async (req, res) => {
         const event = req.query.event;
         let startDate, endDate;
 
+        // Définir les dates de début et de fin si la saison est spécifiée
         if (season !== 'none') {
             [startDate, endDate] = getFinalDate(season);
 
+            // Si l'événement est final, ajuster les dates de début et de fin
             if (event === 'final') {
                 endDate = new Date(endDate.getFullYear(), endDate.getMonth(),
                     endDate.getDate(), 23, 59, 59, 999);
@@ -783,37 +785,49 @@ statisticController.getScoresForCurrentWeek = async (req, res) => {
         const startDate = new Date(currentDate);
         const endDate = new Date(currentDate);
 
-        const daysUntilMonday = (currentDayOfWeek === 0 ? -6 : 1) - currentDayOfWeek;
+        const daysUntilMonday = 1 - currentDayOfWeek;
         const daysUntilSunday = 7 - currentDayOfWeek;
 
         startDate.setDate(startDate.getDate() + daysUntilMonday);
-        startDate.setHours(0, 0, 0, 0);
         endDate.setDate(endDate.getDate() + daysUntilSunday);
-        endDate.setHours(23, 59, 59, 999);
 
-        let totalPointsBeforeWeekStart = await Game.aggregate([
+        const earliestGame = await Game.findOne(
             {
-                $match: {
-                    createdAt: {
-                        $lt: startDate,
+                createdAt: {
+                    $gte: startDate,
+                    $lte: endDate,
+                },
+            },
+            {},
+            {sort: {createdAt: 1}},
+        );
+
+        let totalPointsBeforeWeekStart = {};
+
+        if (earliestGame) {
+            const gamesBeforeWeekStart = await Game.aggregate([
+                {
+                    $match: {
+                        createdAt: {
+                            $lt: earliestGame.createdAt,
+                        },
                     },
                 },
-            },
-            {
-                $unwind: '$players',
-            },
-            {
-                $group: {
-                    _id: '$players.player',
-                    totalPoints: {$sum: '$players.score'},
+                {
+                    $unwind: '$players',
                 },
-            },
-        ]).then(results =>
-            results.reduce((acc, curr) => {
-                acc[curr._id] = curr.totalPoints;
-                return acc;
-            }, {})
-        );
+                {
+                    $group: {
+                        _id: '$players.player',
+                        totalPointsBeforeWeekStart: {$sum: '$players.score'},
+                    },
+                },
+            ]);
+
+            gamesBeforeWeekStart.forEach((player) => {
+                totalPointsBeforeWeekStart[player._id] = player.totalPointsBeforeWeekStart;
+            });
+        }
 
         const scoresForCurrentWeek = await Game.aggregate([
             {
@@ -829,19 +843,17 @@ statisticController.getScoresForCurrentWeek = async (req, res) => {
             },
             {
                 $group: {
-                    _id: '$players.player',
-                    dailyPoints: {
-                        $push: {
-                            day: {$dayOfWeek: '$createdAt'},
-                            points: '$players.score',
-                        },
+                    _id: {
+                        player: '$players.player',
+                        day: {$dayOfWeek: '$createdAt'},
                     },
+                    dailyPoints: {$sum: '$players.score'},
                 },
             },
             {
                 $lookup: {
                     from: Player.collection.name,
-                    localField: '_id',
+                    localField: '_id.player',
                     foreignField: '_id',
                     as: 'playerDetails',
                 },
@@ -851,28 +863,29 @@ statisticController.getScoresForCurrentWeek = async (req, res) => {
             },
             {
                 $project: {
-                    _id: 0,
-                    player: '$_id',
                     firstname: '$playerDetails.firstname',
                     lastname: '$playerDetails.lastname',
+                    day: '$_id.day',
                     dailyPoints: 1,
-                    totalPointsBeforeWeekStart: {
-                        $ifNull: [{$literal: totalPointsBeforeWeekStart['$_id']}, 0],
-                    },
                 },
             },
             {
-                $addFields: {
-                    totalPointsBeforeWeekStart: {
-                        $ifNull: [totalPointsBeforeWeekStart['$player'], 0],
-                    },
+                $sort: {
+                    dailyPoints: -1,
+                    firstname: 1,
                 },
             },
         ]);
 
+        scoresForCurrentWeek.forEach((player) => {
+            player.totalPointsBeforeWeekStart = totalPointsBeforeWeekStart[player._id.player] ||
+                0;
+        });
+
         res.json(scoresForCurrentWeek);
     } catch (err) {
-        res.status(500).json({error: 'Failed to fetch scores for the current week.'});
+        res.status(500).
+            json({error: 'Failed to fetch scores for the current week.'});
     }
 };
 
