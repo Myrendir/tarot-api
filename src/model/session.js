@@ -6,11 +6,11 @@ const autumn2023 = [
 ];
 const winter2023 = [
     'winter2023',
-    [new Date(2023, 11, 22), new Date(2024, 2, 21, 0, 5, 0)],
+    [new Date(2023, 11, 22), new Date(2024, 2, 22, 0, 5, 0)],
 ];
 const spring2024 = [
     'spring2024',
-    [new Date(2024, 2, 21, 0, 5, 1), new Date(2024, 5, 19, 23, 59, 59)],
+    [new Date(2024, 2, 22, 0, 5, 1), new Date(2024, 5, 19, 23, 59, 59)],
 ];
 const summer2024 = [
     'summer2024',
