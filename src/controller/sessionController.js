@@ -252,9 +252,9 @@ sessionController.addStar = async (req, res) => {
         if (isThirdStar) {
             session.players.forEach(p => {
                 if (p.player.toString() === player._id.toString()) {
-                    p.score -= 100;
+                    p.score -= 200;
                 } else {
-                    p.score += 25;
+                    p.score += 50;
                 }
             });
         }
