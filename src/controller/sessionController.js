@@ -284,5 +284,100 @@ sessionController.getLatestSessions = async (req, res) => {
     }
 };
 
-module.exports = sessionController;
+const changePlayer = async (req, res) => {
+    try {
+        const sessionId = req.params.id;
+        const { oldPlayerId, newPlayerId } = req.body;
+
+        if (!oldPlayerId || !newPlayerId) {
+            return res.status(400).json({ message: "Les IDs des deux joueurs sont requis" });
+        }
+
+        const currentSession = await Session.findById(sessionId).populate('games');
+        if (!currentSession) {
+            return res.status(404).json({ message: "Session non trouvée" });
+        }
+
+        // Check if old player exists in session
+        const playerIndex = currentSession.players.findIndex(p => p.player.toString() === oldPlayerId);
+        if (playerIndex === -1) {
+            return res.status(400).json({ message: "Le joueur à remplacer n'est pas dans la session" });
+        }
+
+        // Check if new player is already in session
+        const newPlayerExists = currentSession.players.some(p => p.player.toString() === newPlayerId);
+        if (newPlayerExists) {
+            return res.status(400).json({ message: "Le nouveau joueur est déjà dans la session" });
+        }
+
+        // Create new players array with the replacement
+        const newPlayers = currentSession.players.map(p => 
+            p.player.toString() === oldPlayerId ? newPlayerId : p.player.toString()
+        );
+
+        // Find existing session with these players in the current season
+        const existingSession = await Session.findOne({
+            'players.player': { $all: newPlayers },
+            season: currentSession.season
+        });
+
+        if (existingSession) {
+            // Return the existing session
+            const populatedSession = await Session.findById(existingSession._id)
+                .populate('players.player')
+                .populate({
+                    path: 'games',
+                    populate: {
+                        path: 'players.player'
+                    }
+                });
+            return res.json({ 
+                message: "Session existante trouvée avec ces joueurs", 
+                session: populatedSession 
+            });
+        }
+
+        // If no existing session, create a new one
+        const newSession = new Session({
+            players: newPlayers.map(playerId => ({ player: playerId })),
+            season: currentSession.season
+        });
+
+        await newSession.save();
+
+        // Return the new session
+        const populatedNewSession = await Session.findById(newSession._id)
+            .populate('players.player')
+            .populate({
+                path: 'games',
+                populate: {
+                    path: 'players.player'
+                }
+            });
+
+        res.json({ 
+            message: "Nouvelle session créée avec les joueurs", 
+            session: populatedNewSession 
+        });
+
+    } catch (error) {
+        console.error("Erreur lors du changement de joueur:", error);
+        res.status(500).json({ message: "Erreur lors du changement de joueur" });
+    }
+};
+
+module.exports = {
+    create: sessionController.create,
+    get: sessionController.get,
+    update: sessionController.update,
+    delete: sessionController.delete,
+    addGameToSessionAndUpdate: sessionController.addGameToSessionAndUpdate,
+    checkExistingSession: sessionController.checkExistingSession,
+    count: sessionController.count,
+    deleteLastGameOfSession: sessionController.deleteLastGameOfSession,
+    addStar: sessionController.addStar,
+    getLatestSessions: sessionController.getLatestSessions,
+    changePlayer,
+    getUpdatedScores: exports.getUpdatedScores
+};
 

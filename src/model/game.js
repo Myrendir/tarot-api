@@ -65,7 +65,7 @@ const gameSchema = new mongoose.Schema({
     },
     season: {
         type: String,
-        enum: ['autumn2023', 'winter2023', 'spring2024', 'summer2024'],
+        enum: ['autumn2023', 'winter2023', 'spring2024', 'summer2024', 'autumn2024'],
     },
 }, {
     timestamps: true,
