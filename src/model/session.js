@@ -20,12 +20,24 @@ const autumn2024 = [
     'autumn2024',
     [new Date(2024, 8, 22), new Date(2024, 11, 21, 23, 59, 59)],
 ];
+
+const winter2024 = [
+    'winter2024',
+    [new Date(2024, 11, 22), new Date(2025, 2, 19, 23, 59, 59)],
+];
+
+const spring2025 = [
+    'spring2025',
+    [new Date(2025, 2, 20), new Date(2025, 5, 20, 23, 59, 59)],
+];
 const seasons = {
     autumn2023,
     winter2023,
     spring2024,
     summer2024,
     autumn2024,
+    winter2024,
+    spring2025,
 };
 const getSeason = (date) => {
     for (const [season, [start, end]] of Object.values(seasons)) {
@@ -75,7 +87,12 @@ const sessionSchema = new mongoose.Schema({
         }],
     season: {
         type: String,
-        enum: ['autumn2023', 'winter2023', 'spring2024', 'summer2024', 'autumn2024'],
+        enum: [
+            'autumn2023',
+            'winter2023',
+            'spring2024',
+            'summer2024',
+            'autumn2024'],
     },
     createdAt: {
         type: Date,
