@@ -37,7 +37,7 @@ const seasons = {
     summer2024,
     autumn2024,
     winter2024,
-    spring2025,
+    spring2025
 };
 const getSeason = (date) => {
     for (const [season, [start, end]] of Object.values(seasons)) {
@@ -92,7 +92,10 @@ const sessionSchema = new mongoose.Schema({
             'winter2023',
             'spring2024',
             'summer2024',
-            'autumn2024'],
+            'autumn2024',
+            'winter2024',
+            'spring2025',
+        ],
     },
     createdAt: {
         type: Date,
