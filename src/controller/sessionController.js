@@ -272,7 +272,7 @@ sessionController.getLatestSessions = async (req, res) => {
     try {
         const latestSessions = await Session.find().
             sort({updatedAt: -1}).
-            limit(5);
+            limit(10);
 
         res.status(200).json(latestSessions);
     } catch (error) {
