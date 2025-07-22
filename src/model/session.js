@@ -1,127 +1,134 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const autumn2023 = [
-    'autumn2023',
-    [new Date(2023, 8, 23), new Date(2023, 11, 21, 23, 59, 59)],
+  "autumn2023",
+  [new Date(2023, 8, 23), new Date(2023, 11, 21, 23, 59, 59)],
 ];
 const winter2023 = [
-    'winter2023',
-    [new Date(2023, 11, 22), new Date(2024, 2, 21, 23, 59, 59)],
+  "winter2023",
+  [new Date(2023, 11, 22), new Date(2024, 2, 21, 23, 59, 59)],
 ];
 const spring2024 = [
-    'spring2024',
-    [new Date(2024, 2, 22), new Date(2024, 5, 19, 23, 59, 59)],
+  "spring2024",
+  [new Date(2024, 2, 22), new Date(2024, 5, 19, 23, 59, 59)],
 ];
 const summer2024 = [
-    'summer2024',
-    [new Date(2024, 5, 20), new Date(2024, 8, 21, 23, 59, 59)],
+  "summer2024",
+  [new Date(2024, 5, 20), new Date(2024, 8, 21, 23, 59, 59)],
 ];
 const autumn2024 = [
-    'autumn2024',
-    [new Date(2024, 8, 22), new Date(2024, 11, 21, 23, 59, 59)],
+  "autumn2024",
+  [new Date(2024, 8, 22), new Date(2024, 11, 21, 23, 59, 59)],
 ];
 
 const winter2024 = [
-    'winter2024',
-    [new Date(2024, 11, 22), new Date(2025, 2, 19, 23, 59, 59)],
+  "winter2024",
+  [new Date(2024, 11, 22), new Date(2025, 2, 19, 23, 59, 59)],
 ];
 
 const spring2025 = [
-    'spring2025',
-    [new Date(2025, 2, 20), new Date(2025, 5, 20, 23, 59, 59)],
+  "spring2025",
+  [new Date(2025, 2, 20), new Date(2025, 5, 20, 23, 59, 59)],
+];
+
+const summer2025 = [
+  "summer2025",
+  [new Date(2025, 5, 21), new Date(2025, 8, 22, 23, 59, 59)],
 ];
 const seasons = {
-    autumn2023,
-    winter2023,
-    spring2024,
-    summer2024,
-    autumn2024,
-    winter2024,
-    spring2025
+  autumn2023,
+  winter2023,
+  spring2024,
+  summer2024,
+  autumn2024,
+  winter2024,
+  spring2025,
+  summer2025,
 };
 const getSeason = (date) => {
-    for (const [season, [start, end]] of Object.values(seasons)) {
-        if (date >= start && date <= end) {
-            return season;
-        }
+  for (const [season, [start, end]] of Object.values(seasons)) {
+    if (date >= start && date <= end) {
+      return season;
     }
+  }
 
-    return undefined;
+  return undefined;
 };
 
 const getSeasonFromDate = (date) => {
-    const season = getSeason(date);
+  const season = getSeason(date);
 
-    if (!season) {
-        throw new Error('No season found for date ' + date);
-    }
+  if (!season) {
+    throw new Error("No season found for date " + date);
+  }
 
-    return season;
-
+  return season;
 };
 
 const getFirstDate = (season) => {
-    return seasons[season][0];
+  return seasons[season][0];
 };
 const getFinalDate = (season) => {
-    return seasons[season][1];
+  return seasons[season][1];
 };
 const sessionSchema = new mongoose.Schema({
-    players: [
-        {
-            player: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'Player',
-                required: true,
-            },
-            score: {
-                type: Number,
-                default: 0,
-            },
-        },
+  players: [
+    {
+      player: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Player",
+        required: true,
+      },
+      score: {
+        type: Number,
+        default: 0,
+      },
+    },
+  ],
+  games: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Game",
+    },
+  ],
+  season: {
+    type: String,
+    enum: [
+      "autumn2023",
+      "winter2023",
+      "spring2024",
+      "summer2024",
+      "autumn2024",
+      "winter2024",
+      "spring2025",
+      "summer2025",
     ],
-    games: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Game',
-        }],
-    season: {
-        type: String,
-        enum: [
-            'autumn2023',
-            'winter2023',
-            'spring2024',
-            'summer2024',
-            'autumn2024',
-            'winter2024',
-            'spring2025',
-        ],
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
-    updatedAt: {
-        type: Date,
-        default: Date.now,
-    },
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
-sessionSchema.index({players: 1}, {unique: true});
+sessionSchema.index({ players: 1 }, { unique: true });
 
-sessionSchema.pre('save', function(next) {
-    if (!this.season) {
-        this.season = getSeason(this.createdAt);
-    }
-    this.players.sort();
-    this.updatedAt = Date.now();
-    next();
+sessionSchema.pre("save", function (next) {
+  if (!this.season) {
+    this.season = getSeason(this.createdAt);
+  }
+  this.players.sort();
+  this.updatedAt = Date.now();
+  next();
 });
 
-sessionSchema.path('players').validate(function(players) {
-    return players.length === 5;
-}, 'A session must have 5 players');
+sessionSchema.path("players").validate(function (players) {
+  return players.length === 5;
+}, "A session must have 5 players");
 
-const Session = mongoose.model('Session', sessionSchema);
+const Session = mongoose.model("Session", sessionSchema);
 
-module.exports = {Session, getSeason, getFirstDate, getFinalDate};
+module.exports = { Session, getSeason, getFirstDate, getFinalDate };
